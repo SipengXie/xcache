@@ -1,4 +1,4 @@
-package gcache
+package xcache
 
 /*
 Copyright 2012 Google Inc.

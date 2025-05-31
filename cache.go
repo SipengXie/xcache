@@ -1,4 +1,4 @@
-package gcache
+package xcache
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ const (
 	TYPE_ARC    = "arc"
 )
 
-var KeyNotFoundError = errors.New("Key not found.")
+var ErrKeyNotFoundError = errors.New("key not found")
 
 type Cache interface {
 	// Set inserts or updates the specified key-value pair.
@@ -209,7 +209,7 @@ func (c *baseCache) load(key interface{}, cb func(interface{}, *time.Duration, e
 	v, called, err := c.loadGroup.Do(key, func() (v interface{}, e error) {
 		defer func() {
 			if r := recover(); r != nil {
-				e = fmt.Errorf("Loader panics: %v", r)
+				e = fmt.Errorf("loader panics: %v", r)
 			}
 		}()
 		return cb(c.loaderExpireFunc(key))

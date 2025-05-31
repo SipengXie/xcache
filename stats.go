@@ -1,4 +1,4 @@
-package gcache
+package xcache
 
 import (
 	"sync/atomic"

@@ -1,4 +1,4 @@
-package gcache
+package xcache
 
 import (
 	"fmt"
@@ -46,14 +46,14 @@ func testGetIFPresent(t *testing.T, evT string) {
 				}).
 			Build()
 
-	v, err := cache.GetIFPresent("key")
-	if err != KeyNotFoundError {
+	_, err := cache.GetIFPresent("key")
+	if err != ErrKeyNotFoundError {
 		t.Errorf("err should not be %v", err)
 	}
 
 	time.Sleep(2 * time.Millisecond)
 
-	v, err = cache.GetIFPresent("key")
+	v, err := cache.GetIFPresent("key")
 	if err != nil {
 		t.Errorf("err should not be %v", err)
 	}
