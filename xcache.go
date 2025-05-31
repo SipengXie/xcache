@@ -41,7 +41,7 @@ func NewXCache[K comparable, V any](bucketSize int) *XCacheBuilder[K, V] {
 	return &XCacheBuilder[K, V]{
 		bucketCount: DefaultBucketCount,
 		bucketSize:  bucketSize,
-		tp:          TYPE_LRU, // 默认使用LRU
+		tp:          TYPE_LRU, // Default to use LRU
 		clock:       NewRealClock(),
 	}
 }
@@ -79,6 +79,11 @@ func (cb *XCacheBuilder[K, V]) LFU() *XCacheBuilder[K, V] {
 // ARC sets eviction type to ARC
 func (cb *XCacheBuilder[K, V]) ARC() *XCacheBuilder[K, V] {
 	return cb.EvictType(TYPE_ARC)
+}
+
+// LIRS sets eviction type to LIRS
+func (cb *XCacheBuilder[K, V]) LIRS() *XCacheBuilder[K, V] {
+	return cb.EvictType(TYPE_LIRS)
 }
 
 // LoaderFunc sets a loader function
@@ -179,7 +184,7 @@ func (cb *XCacheBuilder[K, V]) Build() *XCache[K, V] {
 		stats:       &stats{},
 	}
 
-	// 为每个bucket创建cache实例
+	// Create cache instance for each bucket
 	for i := 0; i < cb.bucketCount; i++ {
 		cacheBuilder := New(cb.bucketSize).
 			EvictType(cb.tp).

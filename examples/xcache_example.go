@@ -9,24 +9,24 @@ import (
 )
 
 func main() {
-	// 创建一个支持string key和interface{} value的XCache
-	// 默认32个bucket，每个bucket大小为100
+	// Create an XCache that supports string key and interface{} value
+	// Default 32 buckets, each bucket size is 100
 	cache := xcache.NewXCache[string, interface{}](100).
-		BucketCount(32).             // 设置32个bucket（默认值）
-		LRU().                       // 使用LRU淘汰策略
-		Expiration(time.Minute * 5). // 设置5分钟过期时间
+		BucketCount(32).             // Set 32 buckets (default value)
+		LRU().                       // Use LRU eviction strategy
+		Expiration(time.Minute * 5). // Set 5 minutes expiration time
 		EvictedFunc(func(key string, value interface{}) {
-			fmt.Printf("淘汰了key: %s, value: %v\n", key, value)
+			fmt.Printf("Evicted key: %s, value: %v\n", key, value)
 		}).
 		AddedFunc(func(key string, value interface{}) {
-			fmt.Printf("添加了key: %s, value: %v\n", key, value)
+			fmt.Printf("Added key: %s, value: %v\n", key, value)
 		}).
 		Build()
 
-	// 基本使用示例
-	fmt.Println("=== 基本使用示例 ===")
+	// Basic usage examples
+	fmt.Println("=== Basic Usage Examples ===")
 
-	// 设置值
+	// Set values
 	err := cache.Set("user:1", map[string]interface{}{
 		"name": "Alice",
 		"age":  30,
@@ -43,92 +43,92 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 获取值
+	// Get values
 	user1, err := cache.Get("user:1")
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("user:1 = %v\n", user1)
 
-	// 检查key是否存在
+	// Check if key exists
 	if cache.Has("user:2") {
-		fmt.Println("user:2 存在于缓存中")
+		fmt.Println("user:2 exists in cache")
 	}
 
-	// 获取所有keys
+	// Get all keys
 	keys := cache.Keys(true)
-	fmt.Printf("所有keys: %v\n", keys)
+	fmt.Printf("All keys: %v\n", keys)
 
-	// 获取缓存大小
-	fmt.Printf("缓存大小: %d\n", cache.Len(true))
+	// Get cache size
+	fmt.Printf("Cache size: %d\n", cache.Len(true))
 
-	// 创建一个支持int key和string value的XCache
-	fmt.Println("\n=== 泛型使用示例 ===")
+	// Create an XCache that supports int key and string value
+	fmt.Println("\n=== Generic Usage Examples ===")
 	intCache := xcache.NewXCache[int, string](50).
 		BucketCount(16).
 		LFU().
 		LoaderFunc(func(key int) (string, error) {
-			// 自动加载数据的函数
+			// Function to automatically load data
 			return fmt.Sprintf("value-for-key-%d", key), nil
 		}).
 		Build()
 
-	// 使用loader function自动加载
+	// Use loader function to automatically load data
 	value, err := intCache.Get(123)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("自动加载的值: %s\n", value)
+	fmt.Printf("Auto-loaded value: %s\n", value)
 
-	// 手动设置值
+	// Manually set value
 	err = intCache.Set(456, "manually-set-value")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// 获取所有数据
+	// Get all data
 	allData := intCache.GetAll(true)
-	fmt.Printf("所有数据: %v\n", allData)
+	fmt.Printf("All data: %v\n", allData)
 
-	// 展示统计信息
-	fmt.Println("\n=== 缓存统计信息 ===")
-	fmt.Printf("命中次数: %d\n", cache.HitCount())
-	fmt.Printf("未命中次数: %d\n", cache.MissCount())
-	fmt.Printf("查找次数: %d\n", cache.LookupCount())
-	fmt.Printf("命中率: %.2f%%\n", cache.HitRate()*100)
+	// Show statistics
+	fmt.Println("\n=== Cache Statistics ===")
+	fmt.Printf("Hit count: %d\n", cache.HitCount())
+	fmt.Printf("Miss count: %d\n", cache.MissCount())
+	fmt.Printf("Lookup count: %d\n", cache.LookupCount())
+	fmt.Printf("Hit rate: %.2f%%\n", cache.HitRate()*100)
 
-	// 演示过期功能
-	fmt.Println("\n=== 过期功能演示 ===")
+	// Demonstrate expiration functionality
+	fmt.Println("\n=== Expiration Functionality Demo ===")
 	tempCache := xcache.NewXCache[string, string](10).
 		BucketCount(4).
 		Simple().
 		Build()
 
-	// 设置带过期时间的值
+	// Set value with expiration time
 	err = tempCache.SetWithExpire("temp-key", "temp-value", time.Second*2)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("设置临时值，2秒后过期")
+	fmt.Println("Set temporary value, expires in 2 seconds")
 
-	// 立即获取
+	// Get immediately
 	tempValue, err := tempCache.Get("temp-key")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("立即获取: %s\n", tempValue)
+	fmt.Printf("Immediate get: %s\n", tempValue)
 
-	// 等待3秒后再获取
+	// Wait 3 seconds then get again
 	time.Sleep(3 * time.Second)
 	_, err = tempCache.Get("temp-key")
 	if err != nil {
-		fmt.Printf("3秒后获取失败: %v\n", err)
+		fmt.Printf("Get after 3 seconds failed: %v\n", err)
 	}
 
-	// 清空缓存
-	fmt.Println("\n=== 清空缓存 ===")
-	fmt.Printf("清空前缓存大小: %d\n", cache.Len(true))
+	// Clear cache
+	fmt.Println("\n=== Clear Cache ===")
+	fmt.Printf("Cache size before clear: %d\n", cache.Len(true))
 	cache.Purge()
-	fmt.Printf("清空后缓存大小: %d\n", cache.Len(true))
+	fmt.Printf("Cache size after clear: %d\n", cache.Len(true))
 }

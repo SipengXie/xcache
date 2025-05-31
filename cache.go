@@ -12,6 +12,7 @@ const (
 	TYPE_LRU    = "lru"
 	TYPE_LFU    = "lfu"
 	TYPE_ARC    = "arc"
+	TYPE_LIRS   = "lirs"
 )
 
 var ErrKeyNotFoundError = errors.New("key not found")
@@ -138,6 +139,10 @@ func (cb *CacheBuilder) ARC() *CacheBuilder {
 	return cb.EvictType(TYPE_ARC)
 }
 
+func (cb *CacheBuilder) LIRS() *CacheBuilder {
+	return cb.EvictType(TYPE_LIRS)
+}
+
 func (cb *CacheBuilder) EvictedFunc(evictedFunc EvictedFunc) *CacheBuilder {
 	cb.evictedFunc = evictedFunc
 	return cb
@@ -186,6 +191,8 @@ func (cb *CacheBuilder) build() Cache {
 		return newLFUCache(cb)
 	case TYPE_ARC:
 		return newARC(cb)
+	case TYPE_LIRS:
+		return newLIRSCache(cb)
 	default:
 		panic("gcache: Unknown type " + cb.tp)
 	}
