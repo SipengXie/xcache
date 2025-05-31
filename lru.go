@@ -110,6 +110,33 @@ func (c *LRUCache) GetIFPresent(key interface{}) (interface{}, error) {
 	return v, err
 }
 
+// Peek returns the value for the specified key if it is present in the cache
+// without updating any eviction algorithm statistics or positions.
+// This is a pure read operation that does not affect cache state.
+func (c *LRUCache) Peek(key interface{}) (interface{}, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	item, ok := c.items[key]
+	if !ok {
+		return nil, ErrKeyNotFoundError
+	}
+
+	it := item.Value.(*lruItem)
+	if it.IsExpired(nil) {
+		return nil, ErrKeyNotFoundError
+	}
+
+	value := it.value
+	if c.deserializeFunc != nil {
+		c.mu.RUnlock()
+		defer c.mu.RLock()
+		return c.deserializeFunc(key, value)
+	}
+
+	return value, nil
+}
+
 func (c *LRUCache) get(key interface{}, onLoad bool) (interface{}, error) {
 	v, err := c.getValue(key, onLoad)
 	if err != nil {

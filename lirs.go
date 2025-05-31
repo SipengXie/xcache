@@ -355,6 +355,31 @@ func (c *LIRSCache) GetIFPresent(key interface{}) (interface{}, error) {
 	return v, err
 }
 
+// Peek returns the value for the specified key if it is present in the cache
+// without updating any eviction algorithm statistics or positions.
+// This is a pure read operation that does not affect cache state.
+func (c *LIRSCache) Peek(key interface{}) (interface{}, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	item, exists := c.items[key]
+	if !exists {
+		return nil, ErrKeyNotFoundError
+	}
+
+	if !item.IsExpired(nil) && item.isResident {
+		value := item.value
+		if c.deserializeFunc != nil {
+			c.mu.RUnlock()
+			defer c.mu.RLock()
+			return c.deserializeFunc(key, value)
+		}
+		return value, nil
+	}
+
+	return nil, ErrKeyNotFoundError
+}
+
 // get internal method for getting values
 func (c *LIRSCache) get(key interface{}, onLoad bool) (interface{}, error) {
 	v, err := c.getValue(key, onLoad)

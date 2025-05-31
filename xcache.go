@@ -285,6 +285,26 @@ func (xc *XCache[K, V]) GetIFPresent(key K) (V, error) {
 	return zero, fmt.Errorf("type assertion failed")
 }
 
+// Peek returns the value for the specified key if it is present in the cache
+// without updating any eviction algorithm statistics or positions.
+// This is a pure read operation that does not affect cache state.
+// Note: This method does not update hit/miss statistics.
+func (xc *XCache[K, V]) Peek(key K) (V, error) {
+	bucket := xc.getBucket(key)
+	value, err := bucket.Peek(key)
+	if err != nil {
+		var zero V
+		return zero, err
+	}
+
+	if v, ok := value.(V); ok {
+		return v, nil
+	}
+
+	var zero V
+	return zero, fmt.Errorf("type assertion failed")
+}
+
 // GetAll returns a map containing all key-value pairs in the cache
 func (xc *XCache[K, V]) GetAll(checkExpired bool) map[K]V {
 	result := make(map[K]V)

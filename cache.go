@@ -31,6 +31,11 @@ type Cache interface {
 	// GetIFPresent returns the value for the specified key if it is present in the cache.
 	// Return KeyNotFoundError if the key is not present.
 	GetIFPresent(key interface{}) (interface{}, error)
+	// Peek returns the value for the specified key if it is present in the cache
+	// without updating any eviction algorithm statistics or positions.
+	// This is a pure read operation that does not affect cache state.
+	// Return KeyNotFoundError if the key is not present.
+	Peek(key interface{}) (interface{}, error)
 	// GetAll returns a map containing all key-value pairs in the cache.
 	GetALL(checkExpired bool) map[interface{}]interface{}
 	get(key interface{}, onLoad bool) (interface{}, error)
